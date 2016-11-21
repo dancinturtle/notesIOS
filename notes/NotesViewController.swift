@@ -9,7 +9,7 @@
 import UIKit
 import CoreData
 
-class NotesViewController: UITableViewController, UISearchBarDelegate, UISearchResultsUpdating{
+class NotesViewController: UITableViewController{
     
     
     let managedObjectContext = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext
@@ -19,18 +19,18 @@ class NotesViewController: UITableViewController, UISearchBarDelegate, UISearchR
     var editThisEntry = false
     
     
-    @IBOutlet weak var searchBar: UISearchBar!
-    
-    var searchController = UISearchController(searchResultsController:nil)
-    
     var filteredData = [Note]()
+    
+    let searchController = UISearchController(searchResultsController:nil)
+    
+   
     
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        searchBar.delegate = self
+       
         fetchAll()
-        filteredData = notes
+//        filteredData = notes
         searchController.searchResultsUpdater = self
         searchController.dimsBackgroundDuringPresentation = false
         definesPresentationContext = true
@@ -48,7 +48,6 @@ class NotesViewController: UITableViewController, UISearchBarDelegate, UISearchR
            
             let vc = segue.destinationViewController as! DetailsViewController
             
-            
             if editThisEntry == false {
             vc.addNewNote = true
             }
@@ -57,16 +56,24 @@ class NotesViewController: UITableViewController, UISearchBarDelegate, UISearchR
                 editThisEntry = false
                 vc.addNewNote = false
                 vc.editOldNote = true
-                if let indexPath = tableView.indexPathForCell(sender as! UITableViewCell) {
-                    vc.noteToEdit = notes[indexPath.row]
-                    vc.noteToEditIndexPath = indexPath.row
+                let note: Note
+                let indexPath = tableView.indexPathForCell(sender as! UITableViewCell)
+                if searchController.active && searchController.searchBar.text != "" {
+                    note = filteredData[indexPath!.row]
                 }
+                else {
+                    note = notes[indexPath!.row]
+                }
+
+                    vc.noteToEdit = note
+
+
             }
         }
     }
     
  
-    func filterContentForSearchText(searchText: String, scope: String = "All") {
+    func filterContentForSearchText(searchText: String) {
         filteredData = notes.filter { data in
             return data.details!.lowercaseString.containsString(searchText.lowercaseString)
             
@@ -83,19 +90,14 @@ class NotesViewController: UITableViewController, UISearchBarDelegate, UISearchR
         } else {
             note = notes[indexPath.row]
         }
-        if let noteDetails = filteredData[indexPath.row].details {
-            if let noteDate = filteredData[indexPath.row].date {
-                cell.textLabel?.text = noteDetails
-                cell.detailTextLabel?.text = noteDate
-
-            }
-        }
+        cell.textLabel!.text = note.details
+        cell.detailTextLabel?.text = note.date
 
         return cell
         
     }
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if searchController.active && searchController.searchBar.text != " " {
+        if searchController.active && searchController.searchBar.text != "" {
             return filteredData.count
         }
         
@@ -138,7 +140,7 @@ class NotesViewController: UITableViewController, UISearchBarDelegate, UISearchR
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         editThisEntry = true
         performSegueWithIdentifier("detailsSegue", sender: tableView.cellForRowAtIndexPath(indexPath))
-        print("Index Path!!", indexPath)
+        
     }
     
     
@@ -156,14 +158,14 @@ class NotesViewController: UITableViewController, UISearchBarDelegate, UISearchR
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+       
     }
 
 }
 
 extension NotesViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController){
-        filterContentForSearchText(searchText: searchController.searchBar.text!)
+    func updateSearchResultsForSearchController(searchController: UISearchController){
+        filterContentForSearchText(searchController.searchBar.text!)
     }
 }
 

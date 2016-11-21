@@ -20,7 +20,7 @@ class DetailsViewController: UIViewController, UITextViewDelegate {
     var editOldNote = false
     var editNewNote = false
     var noteToEdit: Note?
-    var noteToEditIndexPath: Int?
+
     var notes = [Note]()
 
 
@@ -30,13 +30,12 @@ class DetailsViewController: UIViewController, UITextViewDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("are we adding?", addNewNote, editOldNote, editNewNote, noteToEdit, noteToEditIndexPath)
         fetchAll()
         textView.delegate = self
         if let noteBeingEdited = noteToEdit {
             textView.text = noteBeingEdited.details
         }
-        // Do any additional setup after loading the view, typically from a nib.
+        
     }
   
     func textViewDidChange(textView: UITextView) {
